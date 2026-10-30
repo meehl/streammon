@@ -1,0 +1,16 @@
+[Unit]
+Description=Streamlink recorder for %i
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/streammon/%i.env
+ExecStart=%h/.local/libexec/streammon %i
+Restart=on-failure
+RestartSec=20s
+RestartPreventExitStatus=78
+KillSignal=SIGINT
+TimeoutStopSec=30s
+WorkingDirectory=%h/@rec/%i
+
+[Install]
+WantedBy=default.target

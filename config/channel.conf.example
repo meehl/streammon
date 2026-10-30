@@ -1,0 +1,3 @@
+retry-streams=30
+stream-segment-threads=4
+twitch-supported-codecs=h264,h265,av1

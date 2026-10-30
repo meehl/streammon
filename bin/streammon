@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+set -u
+shopt -s nullglob
+
+msg() {
+  printf '%s\n' "${1-}" >&2
+}
+
+die() {
+  local message="${1}"
+  local code="${2:-1}"
+
+  msg "${message}"
+  exit "${code}"
+}
+
+CHANNEL="${1:?usage: streammon <channel-id>}"
+
+: "${STREAM_URL:?STREAM_URL is not configured}"
+: "${STREAM_QUALITY:=best}"
+: "${OUTPUT_DIR:?OUTPUT_DIR is not configured}"
+: "${OUTPUT_TEMPLATE:?OUTPUT_TEMPLATE is not configured}"
+
+sl_config="$HOME/.config/streammon/${CHANNEL}.conf"
+SUCCESS_DELAY=2
+STOP_RC=78 # Used to prevent systemd from restarting
+
+# Check prerequisites
+[[ -r "$sl_config" ]] || die "ERROR: Cannot read configuration: $sl_config" $STOP_RC
+command -v streamlink >/dev/null 2>&1 || die "ERROR: Streamlink executable not found" $STOP_RC
+
+# Pre-validate configuration and exit early if invalid
+if ! streamlink --config "$sl_config" --can-handle-url-no-redirect "$STREAM_URL"; then
+    RC=$?
+    die "ERROR: Streamlink validation failed (exit status ${RC})" $STOP_RC
+fi
+
+# Create output directory
+mkdir -p "${OUTPUT_DIR}" ||
+    die "ERROR: Cannot create output directory: ${OUTPUT_DIR}" $STOP_RC
+
+# Start monitoring
+while true; do
+    # We don't know the output file name in advance if a metadata variables are used.
+    # Create a temporary directory so it can be found more easily.
+    tmp_dir="$(mktemp -d "${OUTPUT_DIR}/.streammon.XXXXXX")" ||
+        die "ERROR: Could not create temporary recording directory."
+    output="${tmp_dir}${OUTPUT_TEMPLATE}"
+
+    msg "Starting streamlink for ${CHANNEL}..."
+    streamlink --config "$sl_config" --output "$output" "$STREAM_URL" "$STREAM_QUALITY"
+    RC=$?
+
+    # Move recording into final output directory
+    recordings=("${tmp_dir}"/*.ts)
+    ((${#recordings[@]})) && mv -- "${recordings[0]}" "${OUTPUT_DIR}/"
+    rmdir -- "${tmp_dir}" 2>/dev/null ||
+        msg "WARNING: Temporary files remain in ${tmp_dir}"
+
+    case "$RC" in
+        0)
+            msg "Recording finished. Restarting in ${SUCCESS_DELAY}s."
+            sleep "$SUCCESS_DELAY"
+            ;;
+        2)
+            die "ERROR: Streamlink argument error. Stopping." $STOP_RC
+            ;;
+        *)
+            die "Streamlink exited with status ${RC}." $RC
+            ;;
+    esac
+done

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+src=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+app=streammon
+config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+config="$config_home/$app"
+units="$config_home/systemd/user"
+libexec="$HOME/.local/libexec/$app"
+
+install -d -m 0755 "$config" "$libexec" "$units" 
+install -m 0600 "$src/config/channel.conf.example" "$config/channel.conf.example"
+install -m 0600 "$src/config/channel.env.example" "$config/channel.env.example"
+install -m 0755 "$src/bin/streammon" "$libexec/streammon"
+install -m 0644 "$src/systemd/streammon@.service" "$units/"
