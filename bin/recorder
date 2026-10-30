@@ -46,7 +46,7 @@ while true; do
     # Create a temporary directory so it can be found more easily.
     tmp_dir="$(mktemp -d "${OUTPUT_DIR}/.streammon.XXXXXX")" ||
         die "ERROR: Could not create temporary recording directory."
-    output="${tmp_dir}${OUTPUT_TEMPLATE}"
+    output="${tmp_dir}/${OUTPUT_TEMPLATE}"
 
     msg "Starting streamlink for ${CHANNEL}..."
     streamlink --config "$sl_config" --output "$output" "$STREAM_URL" "$STREAM_QUALITY"
