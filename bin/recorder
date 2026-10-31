@@ -17,10 +17,10 @@ die() {
 
 CHANNEL="${1:?usage: streammon <channel-id>}"
 
-: "${STREAM_URL:?STREAM_URL is not configured}"
-: "${STREAM_QUALITY:=best}"
-: "${OUTPUT_DIR:?OUTPUT_DIR is not configured}"
-: "${OUTPUT_TEMPLATE:?OUTPUT_TEMPLATE is not configured}"
+[[ -z ${OUTPUT_DIR:-} ]] && die "OUTPUT_DIR is not configured" "$STOP_RC"
+[[ -z ${STREAM_URL:-} ]] && die "STREAM_URL is not configured" "$STOP_RC"
+[[ -z ${STREAM_QUALITY:-} ]] && STREAM_QUALITY=best
+[[ -z ${OUTPUT_TEMPLATE:-} ]] && OUTPUT_TEMPLATE="{time}.ts"
 
 sl_config="$HOME/.config/streammon/${CHANNEL}.conf"
 SUCCESS_DELAY=2
