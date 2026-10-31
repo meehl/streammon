@@ -4,7 +4,11 @@ Description=Streamlink recorder for %i
 [Service]
 Type=simple
 EnvironmentFile=%h/.config/streammon/%i.env
-ExecStart=%h/.local/libexec/streammon/recorder %i
+# Newer systemd versions can use:
+# ExecStart=%h/.local/libexec/streammon/recorder %i
+# A shell wrapper is used for better compatibility with older versions
+# that don't allow specifiers in the first argument.
+ExecStart=/bin/sh -c 'exec "$HOME/.local/libexec/streammon/recorder" %i'
 Restart=on-failure
 RestartSec=20s
 RestartPreventExitStatus=78
