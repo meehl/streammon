@@ -31,10 +31,8 @@ STOP_RC=78 # Used to prevent systemd from restarting
 command -v streamlink >/dev/null 2>&1 || die "ERROR: Streamlink executable not found" $STOP_RC
 
 # Pre-validate configuration and exit early if invalid
-if ! streamlink --config "$sl_config" --can-handle-url-no-redirect "$STREAM_URL"; then
-    RC=$?
-    die "ERROR: Streamlink validation failed (exit status ${RC})" $STOP_RC
-fi
+streamlink --config "$sl_config" --can-handle-url-no-redirect "$STREAM_URL" ||
+    die "ERROR: Streamlink pre-validation failed" $STOP_RC
 
 # Create output directory
 mkdir -p "${OUTPUT_DIR}" ||
