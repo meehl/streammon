@@ -3,7 +3,9 @@ Description=Streamlink recorder for %i
 
 [Service]
 Type=simple
-EnvironmentFile=%E/streammon/%i.env
+# defaults.env is optional. channel env files override it.
+EnvironmentFile=-%E/streammon/defaults.env
+EnvironmentFile=%E/streammon/channels/%i.env
 # Newer systemd versions can use:
 # ExecStart=%h/.local/libexec/streammon/recorder %i
 # A shell wrapper is used for better compatibility with older versions

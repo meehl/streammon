@@ -21,20 +21,33 @@ SUCCESS_DELAY=2
 STOP_RC=78 # Used to prevent systemd from restarting
 
 config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/streammon"
-sl_config="$config_dir/${CHANNEL}.conf"
+channels_dir="$config_dir/channels"
+global_conf="$config_dir/streamlink.conf"
+channel_conf="$channels_dir/${CHANNEL}.conf"
+sl_args=(--config "$global_conf" --config "$channel_conf")
 
-[[ -z ${OUTPUT_DIR:-} ]] && die "OUTPUT_DIR is not configured" "$STOP_RC"
 [[ -z ${STREAM_URL:-} ]] && die "STREAM_URL is not configured" "$STOP_RC"
 [[ -z ${STREAM_QUALITY:-} ]] && STREAM_QUALITY=best
 [[ -z ${OUTPUT_TEMPLATE:-} ]] && OUTPUT_TEMPLATE="{time}"
 
-# Check prerequisites
-[[ -r "$sl_config" ]] || die "ERROR: Cannot read configuration: $sl_config" $STOP_RC
-command -v streamlink >/dev/null 2>&1 || die "ERROR: Streamlink executable not found" $STOP_RC
+# A per-channel OUTPUT_DIR takes precedence over RECORDINGS_ROOT.
+if [[ -z ${OUTPUT_DIR:-} ]]; then
+    [[ -n ${RECORDINGS_ROOT:-} ]] ||
+        die "OUTPUT_DIR is not configured and RECORDINGS_ROOT is unset" "$STOP_RC"
+    OUTPUT_DIR="${RECORDINGS_ROOT%/}/${CHANNEL}"
+fi
+
+# Check prerequisites.
+# Both config files are optional but have to be readable if they exist.
+for conf in "$global_conf" "$channel_conf"; do
+    [[ ! -e "$conf" || ( -f "$conf" && -r "$conf" ) ]] ||
+        die "ERROR: Cannot read streamlink configuration: $conf" "$STOP_RC"
+done
+command -v streamlink >/dev/null 2>&1 || die "ERROR: Streamlink executable not found" "$STOP_RC"
 
 # Pre-validate configuration and exit early if invalid
-streamlink --config "$sl_config" --can-handle-url-no-redirect "$STREAM_URL" ||
-    die "ERROR: Streamlink pre-validation failed" $STOP_RC
+streamlink "${sl_args[@]}" --can-handle-url-no-redirect "$STREAM_URL" ||
+    die "ERROR: Streamlink pre-validation failed" "$STOP_RC"
 
 # Create output directory
 mkdir -p "${OUTPUT_DIR}" ||
@@ -49,7 +62,7 @@ while true; do
     output="${tmp_dir}/${OUTPUT_TEMPLATE}.ts"
 
     msg "Starting streamlink for ${CHANNEL}..."
-    streamlink --config "$sl_config" --output "$output" "$STREAM_URL" "$STREAM_QUALITY"
+    streamlink "${sl_args[@]}" --output "$output" "$STREAM_URL" "$STREAM_QUALITY"
     RC=$?
 
     # Move recording into final output directory

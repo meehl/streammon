@@ -6,11 +6,18 @@ src=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 app=streammon
 config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
 config="$config_home/$app"
+channels="$config/channels"
 units="$config_home/systemd/user"
 libexec="$HOME/.local/libexec/$app"
 
-install -d -m 0755 "$config" "$libexec" "$units" 
-install -m 0600 "$src/config/channel.conf.example" "$config/channel.conf.example"
-install -m 0600 "$src/config/channel.env.example" "$config/channel.env.example"
+install -d -m 0755 "$config" "$channels" "$libexec" "$units"
+if [[ ! -e "$config/streamlink.conf" ]]; then
+    install -m 0644 "$src/config/streamlink.conf" "$config/streamlink.conf"
+fi
+if [[ ! -e "$config/defaults.env" ]]; then
+    install -m 0600 "$src/config/defaults.env" "$config/defaults.env"
+fi
+install -m 0600 "$src/config/channels/channel.conf.example" "$channels/channel.conf.example"
+install -m 0600 "$src/config/channels/channel.env.example" "$channels/channel.env.example"
 install -m 0755 "$src/bin/recorder" "$libexec/recorder"
 install -m 0644 "$src/systemd/streammon@.service" "$units/"

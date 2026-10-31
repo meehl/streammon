@@ -1,0 +1,4 @@
+# Copy to channels/<channel>.conf for per-channel streamlink overrides.
+# These are merged on top of streamlink.conf; later values take precedence.
+# retry-streams=60
+# stream-segment-threads=2
