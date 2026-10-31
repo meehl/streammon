@@ -17,14 +17,16 @@ die() {
 
 CHANNEL="${1:?usage: streammon <channel-id>}"
 
+SUCCESS_DELAY=2
+STOP_RC=78 # Used to prevent systemd from restarting
+
+config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/streammon"
+sl_config="$config_dir/${CHANNEL}.conf"
+
 [[ -z ${OUTPUT_DIR:-} ]] && die "OUTPUT_DIR is not configured" "$STOP_RC"
 [[ -z ${STREAM_URL:-} ]] && die "STREAM_URL is not configured" "$STOP_RC"
 [[ -z ${STREAM_QUALITY:-} ]] && STREAM_QUALITY=best
 [[ -z ${OUTPUT_TEMPLATE:-} ]] && OUTPUT_TEMPLATE="{time}.ts"
-
-sl_config="$HOME/.config/streammon/${CHANNEL}.conf"
-SUCCESS_DELAY=2
-STOP_RC=78 # Used to prevent systemd from restarting
 
 # Check prerequisites
 [[ -r "$sl_config" ]] || die "ERROR: Cannot read configuration: $sl_config" $STOP_RC

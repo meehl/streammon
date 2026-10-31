@@ -3,7 +3,7 @@ Description=Streamlink recorder for %i
 
 [Service]
 Type=simple
-EnvironmentFile=%h/.config/streammon/%i.env
+EnvironmentFile=%E/streammon/%i.env
 # Newer systemd versions can use:
 # ExecStart=%h/.local/libexec/streammon/recorder %i
 # A shell wrapper is used for better compatibility with older versions
