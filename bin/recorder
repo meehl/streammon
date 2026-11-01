@@ -43,10 +43,18 @@ for conf in "$global_conf" "$channel_conf"; do
     [[ ! -e "$conf" || ( -f "$conf" && -r "$conf" ) ]] ||
         die "ERROR: Cannot read streamlink configuration: $conf" "$STOP_RC"
 done
-command -v streamlink >/dev/null 2>&1 || die "ERROR: Streamlink executable not found" "$STOP_RC"
+
+# Locate the streamlink executable
+STREAMLINK="${STREAMLINK:-streamlink}"
+if ! command -v "$STREAMLINK" >/dev/null 2>&1 &&
+    [[ $STREAMLINK != */* && -x $HOME/.local/bin/$STREAMLINK ]]; then
+    STREAMLINK="$HOME/.local/bin/$STREAMLINK"
+fi
+command -v "$STREAMLINK" >/dev/null 2>&1 ||
+    die "ERROR: Streamlink executable not found: $STREAMLINK" "$STOP_RC"
 
 # Pre-validate configuration and exit early if invalid
-streamlink "${sl_args[@]}" --can-handle-url-no-redirect "$STREAM_URL" ||
+"$STREAMLINK" "${sl_args[@]}" --can-handle-url-no-redirect "$STREAM_URL" ||
     die "ERROR: Streamlink pre-validation failed" "$STOP_RC"
 
 # Create output directory
@@ -62,7 +70,7 @@ while true; do
     output="${tmp_dir}/${OUTPUT_TEMPLATE}.ts"
 
     msg "Starting streamlink for ${CHANNEL}..."
-    streamlink "${sl_args[@]}" --output "$output" "$STREAM_URL" "$STREAM_QUALITY"
+    "$STREAMLINK" "${sl_args[@]}" --output "$output" "$STREAM_URL" "$STREAM_QUALITY"
     RC=$?
 
     # Move recording into final output directory

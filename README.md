@@ -4,11 +4,12 @@ Records streams with [streamlink](https://streamlink.github.io) as a systemd use
 
 ## Install
 
-Requires `streamlink`, then:
-
 ```sh
 ./install
 ```
+
+The recorder looks for `streamlink` on `PATH` and then in `~/.local/bin`. A
+different path can be set in `~/.config/streammon/defaults.env`.
 
 ## Add a channel
 
