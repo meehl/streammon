@@ -55,7 +55,7 @@ mkdir -p "${OUTPUT_DIR}" ||
 
 # Start monitoring
 while true; do
-    # We don't know the output file name in advance if a metadata variables are used.
+    # We don't know the output file name in advance if metadata variables are used.
     # Create a temporary directory so it can be found more easily.
     tmp_dir="$(mktemp -d "${OUTPUT_DIR}/.streammon.XXXXXX")" ||
         die "ERROR: Could not create temporary recording directory."
